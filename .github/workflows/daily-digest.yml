@@ -1,0 +1,46 @@
+# Runs the job digest on GitHub's servers every day at 9:00 AM IST, so the laptop can stay off.
+name: Daily Job Digest
+
+on:
+  schedule:
+    - cron: "30 3 * * *"  # 03:30 UTC = 9:00 AM IST (GitHub may start it a few minutes late)
+  workflow_dispatch:       # "Run workflow" button for a manual run
+
+permissions:
+  contents: write          # to commit seen_jobs.json back, so tomorrow only shows new jobs
+
+concurrency: daily-digest
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Write .env from repository secrets
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          REPORT_TO: ${{ secrets.REPORT_TO }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+        run: |
+          for key in GMAIL_USER GMAIL_APP_PASSWORD REPORT_TO ANTHROPIC_API_KEY GROQ_API_KEY SERPAPI_KEY; do
+            echo "$key=${!key}" >> .env
+          done
+      - run: python job_digest.py
+        env:
+          TZ: Asia/Kolkata         # so "today" in the report is the IST date
+      - name: Save seen jobs
+        run: |
+          git config user.name "job-digest-bot"
+          git config user.email "job-digest-bot@users.noreply.github.com"
+          git add seen_jobs.json
+          git diff --cached --quiet || git commit -m "Update seen jobs $(date +%F)"
+          git push

@@ -1,0 +1,162 @@
+{
+  "roles": [
+    "AI Engineer",
+    "Machine Learning Engineer",
+    "Data Scientist",
+    "DevOps Engineer",
+    "MLOps Engineer",
+    "Data Analyst",
+    "Generative AI Engineer"
+  ],
+  "locations": [
+    "Chennai",
+    "Coimbatore",
+    "Erode",
+    "Bangalore",
+    "Bengaluru",
+    "Remote"
+  ],
+  "job_type": "Full-time",
+  "experience_years": {
+    "min": 1,
+    "max": 2,
+    "reject_if_min_required_above": 3
+  },
+  "min_salary_lpa": 3,
+  "max_jobs_in_report": 20,
+  "min_match_score": 55,
+  "lookback_days": 2,
+  "alert_senders": [
+    "linkedin.com",
+    "naukri.com",
+    "indeed.com"
+  ],
+  "serpapi": {
+    "searches_per_day": 3,
+    "max_posted_days_ago": 7,
+    "searches": [
+      {
+        "q": "AI Engineer OR Machine Learning Engineer OR Data Scientist",
+        "location": "Tamil Nadu, India"
+      },
+      {
+        "q": "AI Engineer OR Machine Learning Engineer OR Data Scientist",
+        "location": "Bengaluru, Karnataka, India"
+      },
+      {
+        "q": "DevOps Engineer OR MLOps Engineer OR Data Analyst",
+        "location": "Tamil Nadu, India"
+      },
+      {
+        "q": "remote AI Engineer OR Data Scientist OR DevOps Engineer OR Data Analyst",
+        "location": "India"
+      }
+    ]
+  },
+  "skills": [
+    "python",
+    "sql",
+    "machine learning",
+    "deep learning",
+    "scikit-learn",
+    "tensorflow",
+    "nlp",
+    "computer vision",
+    "yolo",
+    "eda",
+    "statistics",
+    "llm",
+    "generative ai",
+    "genai",
+    "rag",
+    "langchain",
+    "hugging face",
+    "huggingface",
+    "openai",
+    "ai agents",
+    "docker",
+    "kubernetes",
+    "terraform",
+    "ansible",
+    "linux",
+    "ci/cd",
+    "aws",
+    "flask",
+    "django",
+    "streamlit",
+    "n8n",
+    "make",
+    "api",
+    "power bi",
+    "tableau",
+    "excel",
+    "dax",
+    "matplotlib",
+    "seaborn",
+    "plotly",
+    "git",
+    "mlops",
+    "devops"
+  ],
+  "resume_versions": {
+    "AI / GenAI Engineer": {
+      "keywords": [
+        "ai engineer",
+        "generative",
+        "genai",
+        "llm",
+        "rag",
+        "langchain",
+        "agent",
+        "nlp",
+        "computer vision",
+        "prompt"
+      ],
+      "headline": "AI Engineer | Generative AI | LLM, RAG & AI Agents | Computer Vision",
+      "file": "resumes/Arunkumar_AI_GenAI_Engineer.pdf"
+    },
+    "Data Scientist / ML Engineer": {
+      "keywords": [
+        "data scientist",
+        "machine learning",
+        "ml engineer",
+        "scikit",
+        "tensorflow",
+        "model",
+        "deep learning"
+      ],
+      "headline": "Data Scientist | Machine Learning Engineer | End-to-end ML for live client projects",
+      "file": "resumes/Arunkumar_Data_Scientist_ML_Engineer.pdf"
+    },
+    "DevOps / MLOps Engineer": {
+      "keywords": [
+        "devops",
+        "mlops",
+        "kubernetes",
+        "docker",
+        "terraform",
+        "ansible",
+        "ci/cd",
+        "aws",
+        "cloud",
+        "sre"
+      ],
+      "headline": "DevOps / MLOps Engineer | Docker, Kubernetes, Terraform, Ansible, CI/CD, AWS",
+      "file": "resumes/Arunkumar_DevOps_MLOps_Engineer.pdf"
+    },
+    "Data Analyst": {
+      "keywords": [
+        "data analyst",
+        "analytics",
+        "power bi",
+        "tableau",
+        "excel",
+        "dax",
+        "dashboard",
+        "reporting"
+      ],
+      "headline": "Data Analyst | SQL, Python, Power BI, Tableau | Dashboards & Statistical Analysis",
+      "file": "resumes/Arunkumar_Data_Analyst.pdf"
+    }
+  }
+}
