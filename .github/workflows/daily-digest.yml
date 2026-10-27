@@ -1,15 +1,28 @@
 # Runs the job digest on GitHub's servers every day at 9:00 AM IST, so the laptop can stay off.
+# cron-job.org triggers it on time at 9:00 via the API (GitHub's own schedule can start hours late).
+# The GitHub schedules below are backups; whichever run sends first writes today's date to
+# last_sent.txt and the others skip.
 name: Daily Job Digest
 
 on:
   schedule:
-    - cron: "30 3 * * *"  # 03:30 UTC = 9:00 AM IST (GitHub may start it a few minutes late)
-  workflow_dispatch:       # "Run workflow" button for a manual run
+    - cron: "30 3 * * *"  # 03:30 UTC = 9:00 AM IST
+    - cron: "30 5 * * *"  # 11:00 AM IST backup
+    - cron: "30 7 * * *"  # 1:00 PM IST backup
+  workflow_dispatch:       # cron-job.org, or the "Run workflow" button
+    inputs:
+      force:
+        description: "Send even if today's digest already went out"
+        type: boolean
+        default: false
 
 permissions:
-  contents: write          # to commit seen_jobs.json back, so tomorrow only shows new jobs
+  contents: write          # to commit seen_jobs.json and last_sent.txt back
 
-concurrency: daily-digest
+concurrency: daily-digest  # runs queue one after another, never in parallel
+
+env:
+  TZ: Asia/Kolkata         # so "today" is the IST date everywhere
 
 jobs:
   digest:
@@ -17,12 +30,24 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main            # latest main, so a queued run sees the previous run's last_sent.txt
+      - name: Skip if today's digest already went out
+        id: check
+        run: |
+          if [ "${{ inputs.force }}" != "true" ] && [ "$(cat last_sent.txt 2>/dev/null)" = "$(date +%F)" ]; then
+            echo "Already sent today, skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/setup-python@v5
+        if: steps.check.outputs.skip != 'true'
         with:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
+        if: steps.check.outputs.skip != 'true'
       - name: Write .env from repository secrets
+        if: steps.check.outputs.skip != 'true'
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
@@ -35,12 +60,34 @@ jobs:
             echo "$key=${!key}" >> .env
           done
       - run: python job_digest.py
-        env:
-          TZ: Asia/Kolkata         # so "today" in the report is the IST date
-      - name: Save seen jobs
+        if: steps.check.outputs.skip != 'true'
+      - name: Save seen jobs and today's sent date
+        if: steps.check.outputs.skip != 'true'
         run: |
+          date +%F > last_sent.txt
           git config user.name "job-digest-bot"
           git config user.email "job-digest-bot@users.noreply.github.com"
-          git add seen_jobs.json
+          git add seen_jobs.json last_sent.txt
           git diff --cached --quiet || git commit -m "Update seen jobs $(date +%F)"
           git push
+      - name: Email me that the digest failed
+        if: failure()
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          REPORT_TO: ${{ secrets.REPORT_TO }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'EOF'
+          import os, smtplib
+          from email.message import EmailMessage
+          msg = EmailMessage()
+          msg["Subject"] = "Job digest FAILED - check the log"
+          msg["From"] = os.environ["GMAIL_USER"]
+          msg["To"] = os.environ["REPORT_TO"]
+          msg.set_content("Today's job digest run failed. A backup run will try again later today.\n\n"
+                          f"Log: {os.environ['RUN_URL']}")
+          with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+              smtp.login(os.environ["GMAIL_USER"], os.environ["GMAIL_APP_PASSWORD"])
+              smtp.send_message(msg)
+          EOF
